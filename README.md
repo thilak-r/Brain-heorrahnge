@@ -52,7 +52,7 @@ This project leverages cutting-edge AI techniques to detect and classify brain h
 1. Clone the repository:
    ```bash
    git clone https://github.com/your-username/Brain-heorrahnge.git
-   cd liver-fibrosis-detection
+   cd Brain-heorrahnge
 
 2. Install Dependencies: 
 Run the following command to install all required dependencies:
