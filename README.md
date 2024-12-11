@@ -73,7 +73,7 @@ Navigate to the following address in your web browser to access the application:
 ---
 
 ### 🙌 **Contributors**
-#### Thilak R (https://github.com/thilak-r) <br>
+#### [Thilak R](https://github.com/thilak-r) <br>
 #### under guidance of [Dr Agughasi Victor Ikechukwu](https://github.com/Victor-Ikechukwu) <br>
 ---
 
