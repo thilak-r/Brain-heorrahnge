@@ -62,7 +62,5 @@ def predict():
         return render_template('index.html', prediction=prediction, probability=probability, image_path=file_path)
 
 if __name__ == '__main__':
-    if not os.path.exists('static/uploads'):
-        os.makedirs('static/uploads')
-    # Ensuring the app runs on the correct host and port provided by Render
+
     app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))
