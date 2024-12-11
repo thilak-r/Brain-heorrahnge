@@ -4,109 +4,145 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Brain Hemorrhage Detection</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body {
-            background: linear-gradient(to bottom, #3a6186, #89253e);
-            color: #fff;
             font-family: Arial, sans-serif;
+            background-color: #f4f7fc;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        h1 {
+            color: #333;
+            font-size: 2.5em;
+            margin-bottom: 20px;
+        }
+
+        .upload-container {
+            background: #fff;
+            border: 2px dashed #ddd;
+            border-radius: 10px;
+            padding: 30px;
             text-align: center;
-            padding: 20px;
+            width: 50%;
+            transition: transform 0.3s ease, background-color 0.3s ease;
         }
-        .container {
-            margin-top: 50px;
-            padding: 20px;
-            border-radius: 10px;
-            background: rgba(255, 255, 255, 0.1);
-            box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.5);
+
+        .upload-container:hover {
+            transform: scale(1.05);
+            background-color: #eaf3ff;
         }
-        .drag-and-drop {
-            border: 2px dashed #fff;
-            border-radius: 10px;
-            padding: 20px;
+
+        .drag-area {
+            font-size: 1.2em;
+            color: #666;
+            margin: 20px 0;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            background: #007bff;
+            color: white;
+            font-size: 1em;
             cursor: pointer;
             transition: background-color 0.3s ease;
-            margin-bottom: 15px;
         }
-        .drag-and-drop:hover {
-            background-color: rgba(255, 255, 255, 0.2);
+
+        .btn:hover {
+            background-color: #0056b3;
         }
-        .btn-custom {
-            background: #4CAF50;
-            border: none;
-            padding: 10px 20px;
-            color: white;
-            font-size: 16px;
-            border-radius: 5px;
-            transition: background 0.3s ease;
+
+        #output {
+            margin-top: 20px;
+            font-size: 1.2em;
+            color: #333;
         }
-        .btn-custom:hover {
-            background: #3e8e41;
+
+        .result {
+            margin-top: 20px;
         }
-        img {
+
+        .result img {
             max-width: 300px;
-            margin-top: 20px;
             border-radius: 10px;
-            box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.5);
-        }
-        h2, p {
-            margin-top: 20px;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Brain Hemorrhage Detection</h1>
-        <p>Upload a Brain CT Image via Drag-and-Drop or Choose File Option</p>
-
-        <form id="uploadForm" method="POST" action="/predict" enctype="multipart/form-data">
-            <div class="drag-and-drop" id="dropZone">
-                <p>Drag and drop an image here</p>
-                <input type="file" id="fileInput" name="file" style="display: none;" required>
-            </div>
-
-            <p>OR</p>
-            
-            <label for="fileInput" class="btn btn-custom">Choose File</label>
-            <input type="file" id="fileInput" name="file" style="display: none;" required>
-
-            <button type="submit" class="btn btn-custom mt-3">Predict</button>
-        </form>
-
-        {% if prediction %}
-        <div class="result mt-4">
-            <h2>Prediction: {{ prediction }}</h2>
-            <p>Confidence: {{ (probability * 100) | round(2) }}%</p>
-            <img src="{{ image_path }}" alt="Uploaded Image">
-        </div>
-        {% endif %}
+    <h1>Brain Hemorrhage Detection</h1>
+    <div class="upload-container" id="drop-area">
+        <p class="drag-area">Drag & Drop your file here or</p>
+        <button class="btn" onclick="document.getElementById('file-input').click()">Choose File</button>
+        <input type="file" id="file-input" class="file-input" accept="image/*" onchange="handleFileSelection(event)">
     </div>
+    <p id="output"></p>
+    <div id="result" class="result"></div>
 
     <script>
-        const dropZone = document.getElementById('dropZone');
-        const fileInput = document.getElementById('fileInput');
+        const dropArea = document.getElementById('drop-area');
+        const fileInput = document.getElementById('file-input');
+        const output = document.getElementById('output');
+        const resultDiv = document.getElementById('result');
 
-        dropZone.addEventListener('click', () => fileInput.click());
-
-        dropZone.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            dropZone.style.backgroundColor = "rgba(255, 255, 255, 0.2)";
+        dropArea.addEventListener('dragover', (event) => {
+            event.preventDefault();
+            dropArea.style.backgroundColor = '#eaf3ff';
         });
 
-        dropZone.addEventListener('dragleave', () => {
-            dropZone.style.backgroundColor = "transparent";
+        dropArea.addEventListener('dragleave', () => {
+            dropArea.style.backgroundColor = '#fff';
         });
 
-        dropZone.addEventListener('drop', (e) => {
-            e.preventDefault();
-            fileInput.files = e.dataTransfer.files;
+        dropArea.addEventListener('drop', (event) => {
+            event.preventDefault();
+            dropArea.style.backgroundColor = '#fff';
+            const file = event.dataTransfer.files[0];
+            processFile(file);
         });
 
-        // Ensure the Choose File button syncs with drag-and-drop
-        fileInput.addEventListener('change', (e) => {
-            const fileName = e.target.files[0]?.name || "No file chosen";
-            alert(`Selected File: ${fileName}`);
-        });
+        function handleFileSelection(event) {
+            const file = event.target.files[0];
+            if (file) {
+                processFile(file);
+            }
+        }
+
+        function processFile(file) {
+            if (!file) return;
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            fetch('/predict', {
+                method: 'POST',
+                body: formData,
+            })
+                .then((response) => response.json())
+                .then((data) => {
+                    if (data.error) {
+                        output.textContent = `Error: ${data.error}`;
+                        resultDiv.innerHTML = '';
+                    } else {
+                        output.textContent = `Prediction: ${data.prediction}, Confidence: ${data.probability}`;
+                        resultDiv.innerHTML = `<img src="${data.image_path}" alt="Uploaded Image">`;
+                    }
+                })
+                .catch((error) => {
+                    console.error('Error:', error);
+                    output.textContent = 'An error occurred during prediction.';
+                    resultDiv.innerHTML = '';
+                });
+        }
     </script>
 </body>
 </html>
